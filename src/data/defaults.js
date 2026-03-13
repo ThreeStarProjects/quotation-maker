@@ -17,7 +17,7 @@ export const autoQN = () => {
 }
 
 export const INR = (n) =>
-  "₹" + new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2 }).format(Number(n) || 0)
+  "Rs. " + new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2 }).format(Number(n) || 0)
 
 export const calcTotals = (items, charges, gst) => {
   const subtotal = items.reduce((a, i) => a + i.qty * i.rate, 0)
