@@ -13,13 +13,20 @@ import { INR }        from './data/defaults'
 
 // ── Share Modal ───────────────────────────────────────────
 function ShareModal({ onClose }) {
-  const { co, cl, items, charges, gst, totals, note } = useQuote()
-  const { subtotal, totChg, gstAmt, grand } = totals
+  const { co, cl, items, charges, gst, gstType, totals, note } = useQuote()
+  const { subtotal, totChg, cgst, sgst, igst, grand } = totals
   const [copied, setCopied] = useState(false)
+  const isIntra = gstType === 'intra'
+
+  const gstLines = gst
+    ? isIntra
+      ? `\nCGST @ 9%     : ${INR(cgst)}\nSGST @ 9%     : ${INR(sgst)}`
+      : `\nIGST @ 18%    : ${INR(igst)}`
+    : ''
 
   const lines   = items.map((it, i) => `  ${i+1}. ${it.name} — Qty: ${it.qty} x ${INR(it.rate)} = ${INR(it.qty * it.rate)}`).join('\n')
   const xtra    = charges.filter(c => c.label || Number(c.amount) > 0).map(c => `\n${(c.label||'Charge').padEnd(14)}: ${INR(c.amount)}`).join('')
-  const body    = `Dear ${cl.attn||cl.clientName||'Sir/Madam'},\n\nPlease find our quotation for your reference.\n\nQuotation No : ${cl.quoteNo}\nDate         : ${cl.date}\nValid Until  : ${cl.validUntil}\nProject      : ${cl.project||'—'}\nSite         : ${cl.site||'—'}\n\n── ITEMS ──────────────────────────\n${lines||'  (No items)'}\n\nSub Total     : ${INR(subtotal)}${xtra}${gst?`\nGST @ 18%     : ${INR(gstAmt)}`:''}\nGRAND TOTAL   : ${INR(grand)}\n\n${note?`Note: ${note}\n\n`:''}Kindly revert with your confirmation or queries.\n\nWarm regards,\n${co.name}\n${co.phone}\n${co.email}\n${co.website}`
+  const body    = `Dear ${cl.attn||cl.clientName||'Sir/Madam'},\n\nPlease find our quotation for your reference.\n\nQuotation No : ${cl.quoteNo}\nDate         : ${cl.date}\nValid Until  : ${cl.validUntil}\nProject      : ${cl.project||'—'}\nSite         : ${cl.site||'—'}\n\n── ITEMS ──────────────────────────\n${lines||'  (No items)'}\n\nSub Total     : ${INR(subtotal)}${xtra}${gstLines}\nGRAND TOTAL   : ${INR(grand)}\n\n${note?`Note: ${note}\n\n`:''}Kindly revert with your confirmation or queries.\n\nWarm regards,\n${co.name}\n${co.phone}\n${co.email}\n${co.website}`
   const subject = `Quotation ${cl.quoteNo} – ${cl.project||co.name}`
   const waMsg   = encodeURIComponent(`Hi ${cl.attn||cl.clientName||''},\n\nQuotation *${cl.quoteNo}* for project *${cl.project||''}*\nGrand Total: *${INR(grand)}*\n\nKindly review and confirm.\n\nRegards,\n${co.name}`)
 
@@ -102,7 +109,7 @@ function Lightbox({ src, onClose }) {
 
 // ── Inner App ─────────────────────────────────────────────
 function InnerApp() {
-  const { co, cl, items, charges, gst, totals, note, terms, bank, logo, logoSize, saveQuote } = useQuote()
+  const { co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize, saveQuote } = useQuote()
   const [tab,        setTab]        = useState('editor')
   const [modalImg,   setModalImg]   = useState(null)
   const [showShare,  setShowShare]  = useState(false)
@@ -113,7 +120,7 @@ function InnerApp() {
   const downloadPDF = useCallback(async () => {
     setPdfLoading(true)
     try {
-      const doc  = <QuotePDF co={co} cl={cl} items={items} charges={charges} gst={gst} totals={totals} note={note} terms={terms} bank={bank} logo={logo} logoSize={logoSize} />
+      const doc  = <QuotePDF co={co} cl={cl} items={items} charges={charges} gst={gst} gstType={gstType} totals={totals} note={note} terms={terms} bank={bank} logo={logo} logoSize={logoSize} />
       const blob = await pdf(doc).toBlob()
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
@@ -127,7 +134,7 @@ function InnerApp() {
     } finally {
       setPdfLoading(false)
     }
-  }, [co, cl, items, charges, gst, totals, note, terms, bank, logo, logoSize])
+  }, [co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize])
 
   const handleSave = () => {
     saveQuote()
