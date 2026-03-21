@@ -58,7 +58,7 @@ export const DEFAULT_COMPANY = {
   website: "www.3starprojects.com",
   email:   "gsp@3starprojects.com | info@3starprojects.com",
   phone:   "7303111333 / 7498111222",
-  gstin:   "27AABCT1234A1Z5",   // Maharashtra GSTIN (27) — update with real number
+  gstin:   "27AALCT9509K1ZN",   // Maharashtra GSTIN (27) — update with real number
   state:   "Maharashtra",
 }
 
