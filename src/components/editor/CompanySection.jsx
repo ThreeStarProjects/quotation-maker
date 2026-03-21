@@ -41,7 +41,26 @@ export default function CompanySection() {
           <Field label="Website" value={co.website} onChange={e => updCo('website', e.target.value)} />
           <Field label="Email"   value={co.email}   onChange={e => updCo('email',   e.target.value)} />
         </div>
-        <Field label="Phone" value={co.phone} onChange={e => updCo('phone', e.target.value)} />
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Phone" value={co.phone} onChange={e => updCo('phone', e.target.value)} />
+          <Field label="State"  value={co.state}  onChange={e => updCo('state',  e.target.value)} placeholder="e.g. Maharashtra" />
+        </div>
+        {/* GSTIN highlighted */}
+        <div className="mb-3">
+          <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-1">
+            GSTIN <span className="text-orange">(Your GST Registration No.)</span>
+          </label>
+          <input
+            value={co.gstin}
+            onChange={e => updCo('gstin', e.target.value.toUpperCase())}
+            placeholder="e.g. 27AABCT1234A1Z5"
+            maxLength={15}
+            className="w-full px-3 py-2 border-2 border-orange/40 rounded-md text-sm bg-orange/5 outline-none focus:border-orange font-mono tracking-widest font-bold"
+          />
+          {co.gstin && co.gstin.length !== 15 && (
+            <p className="text-red text-[10px] mt-1">⚠ GSTIN must be exactly 15 characters</p>
+          )}
+        </div>
       </div>
     </Card>
   )
