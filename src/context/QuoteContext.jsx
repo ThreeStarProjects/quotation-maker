@@ -17,6 +17,7 @@ export function QuoteProvider({ children }) {
   const [charges,  setCharges]  = useState(DEFAULT_CHARGES)
   const [note,     setNote]     = useState("NOTE:- MATHADI CHARGES NOT IN OUR SCOPE")
   const [gst,      setGst]      = useState(true)
+  const [gstType,  setGstType]  = useState('intra')   // 'intra' | 'inter'
   const [terms,    setTerms]    = useState(DEFAULT_TERMS)
   const [bank,     setBank]     = useState(DEFAULT_BANK)
 
@@ -62,17 +63,17 @@ export function QuoteProvider({ children }) {
   const updCharge = useCallback((idx, field, val) => setCharges(p => p.map((c, i) => i === idx ? { ...c, [field]: val } : c)), [])
   const delCharge = useCallback((idx) => setCharges(p => p.filter((_, i) => i !== idx)), [])
 
-  const totals = calcTotals(items, charges, gst)
+  const totals = calcTotals(items, charges, gst, gstType)
 
   const saveQuote = useCallback(() => {
-    const data = { co, cl, items, charges, note, gst, terms, bank, logo, logoSize }
+    const data = { co, cl, items, charges, note, gst, gstType, terms, bank, logo, logoSize }
     const key  = `quote_${cl.quoteNo}_${Date.now()}`
     localStorage.setItem(key, JSON.stringify(data))
     const saved = JSON.parse(localStorage.getItem('savedQuotes') || '[]')
     saved.push({ key, quoteNo: cl.quoteNo, client: cl.clientName, date: cl.date })
     localStorage.setItem('savedQuotes', JSON.stringify(saved))
     return key
-  }, [co, cl, items, charges, note, gst, terms, bank, logo, logoSize])
+  }, [co, cl, items, charges, note, gst, gstType, terms, bank, logo, logoSize])
 
   const loadQuote = useCallback((key) => {
     const raw = localStorage.getItem(key)
@@ -81,6 +82,7 @@ export function QuoteProvider({ children }) {
     setCo(d.co);        setCl(d.cl)
     setItems(d.items);  setCharges(d.charges)
     setNote(d.note);    setGst(d.gst)
+    setGstType(d.gstType || 'intra')
     setTerms(d.terms);  setBank(d.bank)
     setLogoRaw(d.logo); setLogoSize(d.logoSize)
     return true
@@ -94,6 +96,7 @@ export function QuoteProvider({ children }) {
     setCharges(DEFAULT_CHARGES())
     setNote("NOTE:- MATHADI CHARGES NOT IN OUR SCOPE")
     setGst(true)
+    setGstType('intra')
     setTerms(DEFAULT_TERMS)
     setBank(DEFAULT_BANK)
   }, [])
@@ -108,6 +111,7 @@ export function QuoteProvider({ children }) {
       charges, addCharge, updCharge, delCharge,
       note, setNote,
       gst, setGst,
+      gstType, setGstType,
       terms, setTerms,
       bank, setBank,
       totals,
