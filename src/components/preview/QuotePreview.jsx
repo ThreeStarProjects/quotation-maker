@@ -2,9 +2,10 @@ import { useQuote } from '../../context/QuoteContext'
 import { INR } from '../../data/defaults'
 
 export default function QuotePreview({ onModalImg }) {
-  const { co, cl, items, charges, gst, totals, note, terms, bank, logo, logoSize } = useQuote()
-  const { subtotal, gstAmt, grand } = totals
-  const hasImgs = items.some(i => i.images.length > 0)
+  const { co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize } = useQuote()
+  const { subtotal, taxable, cgst, sgst, igst, grand } = totals
+  const hasImgs  = items.some(i => i.images.length > 0)
+  const isIntra  = gstType === 'intra'
 
   return (
     <div className="bg-slate-300 py-6 px-4 min-h-screen">
@@ -21,6 +22,11 @@ export default function QuotePreview({ onModalImg }) {
             <div style={{ fontSize:9, color:'#6B7A8D', marginTop:3, lineHeight:1.8 }}>{co.address}</div>
             <div style={{ fontSize:9, color:'#6B7A8D' }}>{co.website} · {co.email}</div>
             <div style={{ fontSize:9, color:'#6B7A8D' }}>📞 {co.phone}</div>
+            {co.gstin && (
+              <div style={{ fontSize:9, color:'#1F4E79', fontWeight:700, marginTop:2 }}>
+                GSTIN: <span style={{ letterSpacing:1 }}>{co.gstin}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -68,6 +74,26 @@ export default function QuotePreview({ onModalImg }) {
                 <div style={{ color:'#1F4E79', fontWeight:700, marginTop:2 }}>{cl.site || '—'}</div>
               </td>
             </tr>
+            {/* GSTIN row */}
+            <tr>
+              <td style={{ border:'1px solid #D0D8E4', padding:'6px 10px', background:'#fff' }}>
+                <div style={{ fontSize:7.5, fontWeight:700, color:'#2C7DA0', textTransform:'uppercase', letterSpacing:1 }}>CLIENT GSTIN</div>
+                <div style={{ color:'#1F4E79', fontWeight:700, marginTop:2, fontFamily:'monospace', letterSpacing:1 }}>{cl.gstin || '—'}</div>
+              </td>
+              <td style={{ border:'1px solid #D0D8E4', padding:'6px 10px', background:'#f0f5fb' }}>
+                <div style={{ fontSize:7.5, fontWeight:700, color:'#2C7DA0', textTransform:'uppercase', letterSpacing:1 }}>
+                  SUPPLY TYPE
+                </div>
+                <div style={{ marginTop:2 }}>
+                  <span style={{
+                    background: isIntra ? '#1F4E79' : '#F47C2C',
+                    color:'#fff', fontSize:8, fontWeight:700, padding:'1px 7px', borderRadius:10, letterSpacing:0.8
+                  }}>
+                    {isIntra ? '🏠 INTRA-STATE (CGST + SGST)' : '🚚 INTER-STATE (IGST)'}
+                  </span>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
 
@@ -110,7 +136,7 @@ export default function QuotePreview({ onModalImg }) {
 
         {/* Totals */}
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
-          <div style={{ width:270, border:'1px solid #D0D8E4', borderRadius:6, overflow:'hidden', fontSize:11 }}>
+          <div style={{ width:300, border:'1px solid #D0D8E4', borderRadius:6, overflow:'hidden', fontSize:11 }}>
             <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 12px', background:'#f5f8fc', borderBottom:'1px solid #D0D8E4' }}>
               <span style={{ color:'#6B7A8D' }}>Sub Total</span><span style={{ fontWeight:600 }}>{INR(subtotal)}</span>
             </div>
@@ -120,8 +146,24 @@ export default function QuotePreview({ onModalImg }) {
               </div>
             ))}
             {gst && (
-              <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 12px', background:'#f5f8fc', borderBottom:'1px solid #D0D8E4' }}>
-                <span style={{ color:'#6B7A8D' }}>GST @ 18%</span><span style={{ fontWeight:600 }}>{INR(gstAmt)}</span>
+              <div style={{ display:'flex', justifyContent:'space-between', padding:'5px 12px', background:'#f0f5fb', borderBottom:'1px solid #D0D8E4' }}>
+                <span style={{ color:'#6B7A8D', fontStyle:'italic', fontSize:10 }}>Taxable Amount</span>
+                <span style={{ fontWeight:600, fontSize:10 }}>{INR(taxable)}</span>
+              </div>
+            )}
+            {gst && isIntra && (
+              <>
+                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 12px', background:'#fff', borderBottom:'1px solid #D0D8E4' }}>
+                  <span style={{ color:'#6B7A8D' }}>CGST @ 9%</span><span style={{ fontWeight:600 }}>{INR(cgst)}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 12px', background:'#f5f8fc', borderBottom:'1px solid #D0D8E4' }}>
+                  <span style={{ color:'#6B7A8D' }}>SGST @ 9%</span><span style={{ fontWeight:600 }}>{INR(sgst)}</span>
+                </div>
+              </>
+            )}
+            {gst && !isIntra && (
+              <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 12px', background:'#fff', borderBottom:'1px solid #D0D8E4' }}>
+                <span style={{ color:'#6B7A8D' }}>IGST @ 18%</span><span style={{ fontWeight:600 }}>{INR(igst)}</span>
               </div>
             )}
             <div style={{ display:'flex', justifyContent:'space-between', padding:'9px 12px', background:'#1F4E79' }}>
