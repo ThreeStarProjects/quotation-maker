@@ -9,6 +9,7 @@ const S = StyleSheet.create({
   coRight:   { flex:1, alignItems:'flex-end', paddingLeft:10 },
   coName:    { fontSize:13, fontFamily:'Helvetica-Bold', color:'#1F4E79', letterSpacing:0.8, marginBottom:2 },
   coSub:     { fontSize:7, color:'#6B7A8D', lineHeight:1.6 },
+  coGstin:   { fontSize:7.5, fontFamily:'Helvetica-Bold', color:'#1F4E79', marginTop:2, letterSpacing:0.5 },
   titleBar:  { flexDirection:'row', justifyContent:'space-between', alignItems:'center', backgroundColor:'#1F4E79', borderRadius:4, padding:'6pt 10pt', marginBottom:7 },
   titleText: { fontSize:16, fontFamily:'Helvetica-Bold', color:'#F47C2C', letterSpacing:3 },
   titleMeta: { alignItems:'flex-end' },
@@ -22,16 +23,22 @@ const S = StyleSheet.create({
   clientCell:{ flex:1, border:'0.5pt solid #D0D8E4', padding:'5pt 7pt' },
   clientLbl: { fontSize:6.5, fontFamily:'Helvetica-Bold', color:'#2C7DA0', textTransform:'uppercase', letterSpacing:0.8, marginBottom:2 },
   clientVal: { fontSize:8.5, fontFamily:'Helvetica-Bold', color:'#1F4E79' },
+  clientMono:{ fontSize:8, fontFamily:'Helvetica-Bold', color:'#1F4E79', letterSpacing:1 },
+  supplyBadge:{ fontSize:7, fontFamily:'Helvetica-Bold', color:'#fff', backgroundColor:'#F47C2C', padding:'2pt 6pt', borderRadius:8 },
+  supplyBadgeIn:{ fontSize:7, fontFamily:'Helvetica-Bold', color:'#fff', backgroundColor:'#1F4E79', padding:'2pt 6pt', borderRadius:8 },
   tHead:     { flexDirection:'row', backgroundColor:'#1F4E79', borderBottom:'2pt solid #F47C2C' },
   tHCell:    { padding:'5pt 4pt', fontFamily:'Helvetica-Bold', fontSize:7.5, color:'#fff' },
   tRow:      { flexDirection:'row', borderBottom:'0.5pt solid #ddd' },
   tCell:     { padding:'4pt 4pt', fontSize:8, color:'#1a1a2e' },
   totalsWrap:{ alignItems:'flex-end', marginBottom:10 },
-  totalsBox: { width:200, border:'0.5pt solid #D0D8E4', borderRadius:4, overflow:'hidden' },
+  totalsBox: { width:220, border:'0.5pt solid #D0D8E4', borderRadius:4, overflow:'hidden' },
   totRow:    { flexDirection:'row', justifyContent:'space-between', padding:'4pt 8pt', borderBottom:'0.5pt solid #D0D8E4', backgroundColor:'#f5f8fc' },
   totRowW:   { flexDirection:'row', justifyContent:'space-between', padding:'4pt 8pt', borderBottom:'0.5pt solid #D0D8E4', backgroundColor:'#fff' },
+  totRowSm:  { flexDirection:'row', justifyContent:'space-between', padding:'3pt 8pt', borderBottom:'0.5pt solid #D0D8E4', backgroundColor:'#f0f5fb' },
   totLbl:    { fontSize:8.5, color:'#6B7A8D' },
+  totLblSm:  { fontSize:7.5, color:'#6B7A8D', fontFamily:'Helvetica-Oblique' },
   totVal:    { fontSize:8.5, fontFamily:'Helvetica-Bold' },
+  totValSm:  { fontSize:7.5, fontFamily:'Helvetica-Bold' },
   grandRow:  { flexDirection:'row', justifyContent:'space-between', padding:'6pt 8pt', backgroundColor:'#1F4E79' },
   grandTxt:  { fontSize:10, fontFamily:'Helvetica-Bold', color:'#F47C2C', letterSpacing:0.8 },
   note:      { backgroundColor:'#FFFBEB', border:'0.5pt solid #F6D860', borderLeft:'3pt solid #F47C2C', borderRadius:3, padding:'5pt 8pt', marginBottom:8, fontSize:8, color:'#7B4F00', fontFamily:'Helvetica-Bold' },
@@ -53,9 +60,10 @@ const COLS = [
   { key:'total', label:'TOTAL',       w:'13%', align:'right'  },
 ]
 
-export default function QuotePDF({ co, cl, items, charges, gst, totals, note, terms, bank, logo }) {
-  const { subtotal, gstAmt, grand } = totals
+export default function QuotePDF({ co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo }) {
+  const { subtotal, taxable, cgst, sgst, igst, grand } = totals
   const extraCharges = charges.filter(c => c.label || Number(c.amount) > 0)
+  const isIntra = gstType === 'intra'
 
   return (
     <Document>
@@ -72,6 +80,9 @@ export default function QuotePDF({ co, cl, items, charges, gst, totals, note, te
             <Text style={S.coSub}>{co.address}</Text>
             <Text style={S.coSub}>{co.website}  ·  {co.email}</Text>
             <Text style={S.coSub}>Ph: {co.phone}</Text>
+            {co.gstin ? (
+              <Text style={S.coGstin}>GSTIN: {co.gstin}</Text>
+            ) : null}
           </View>
         </View>
 
@@ -118,6 +129,19 @@ export default function QuotePDF({ co, cl, items, charges, gst, totals, note, te
               <Text style={S.clientVal}>{cl.site || '—'}</Text>
             </View>
           </View>
+          {/* GSTIN + Supply Type row */}
+          <View style={S.clientRow}>
+            <View style={[S.clientCell, { backgroundColor:'#fff' }]}>
+              <Text style={S.clientLbl}>CLIENT GSTIN</Text>
+              <Text style={S.clientMono}>{cl.gstin || '—'}</Text>
+            </View>
+            <View style={[S.clientCell, { backgroundColor:'#f0f5fb', justifyContent:'center' }]}>
+              <Text style={S.clientLbl}>SUPPLY TYPE</Text>
+              <Text style={isIntra ? S.supplyBadgeIn : S.supplyBadge}>
+                {isIntra ? 'INTRA-STATE  |  CGST + SGST' : 'INTER-STATE  |  IGST'}
+              </Text>
+            </View>
+          </View>
         </View>
 
         {/* Items table */}
@@ -159,9 +183,27 @@ export default function QuotePDF({ co, cl, items, charges, gst, totals, note, te
               </View>
             ))}
             {gst && (
-              <View style={S.totRow}>
-                <Text style={S.totLbl}>GST @ 18%</Text>
-                <Text style={S.totVal}>{INR(gstAmt)}</Text>
+              <View style={S.totRowSm}>
+                <Text style={S.totLblSm}>Taxable Amount</Text>
+                <Text style={S.totValSm}>{INR(taxable)}</Text>
+              </View>
+            )}
+            {gst && isIntra && (
+              <>
+                <View style={S.totRowW}>
+                  <Text style={S.totLbl}>CGST @ 9%</Text>
+                  <Text style={S.totVal}>{INR(cgst)}</Text>
+                </View>
+                <View style={S.totRow}>
+                  <Text style={S.totLbl}>SGST @ 9%</Text>
+                  <Text style={S.totVal}>{INR(sgst)}</Text>
+                </View>
+              </>
+            )}
+            {gst && !isIntra && (
+              <View style={S.totRowW}>
+                <Text style={S.totLbl}>IGST @ 18%</Text>
+                <Text style={S.totVal}>{INR(igst)}</Text>
               </View>
             )}
             <View style={S.grandRow}>
@@ -189,6 +231,7 @@ export default function QuotePDF({ co, cl, items, charges, gst, totals, note, te
         {/* Footer */}
         <View style={S.footer}>
           <Text style={[S.footTxt, { color:'#1F4E79', fontFamily:'Helvetica-Bold' }]}>{co.name}</Text>
+          <Text style={[S.footTxt, { color:'#6B7A8D' }]}>GSTIN: {co.gstin || 'N/A'}</Text>
           <Text style={[S.footTxt, { color:'#F47C2C' }]}>● {co.website}</Text>
           <Text style={S.footTxt}>Quote: {cl.quoteNo} | {cl.date}</Text>
         </View>
