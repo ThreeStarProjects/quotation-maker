@@ -62,19 +62,36 @@ const ItemRow = memo(({ item, idx, onUpd, onDel, onDup, onImg, onDelImg, onModal
         }}
       />
       {item.images.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {item.images.map((img, i) => (
-            <div key={i} className="relative">
-              <img
-                src={img.src} alt="ref" onClick={() => onModal(img.src)}
-                className="w-11 h-11 object-cover rounded border-2 border-teal cursor-zoom-in"
-              />
-              <button
-                onClick={() => onDelImg(item.id, i)}
-                className="absolute -top-1.5 -right-1.5 bg-red text-white rounded-full w-4 h-4 text-[9px] font-bold cursor-pointer border-none flex items-center justify-center"
-              >✕</button>
-            </div>
-          ))}
+        <div className="mt-3">
+          <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">
+            Reference Images <span className="normal-case font-normal text-teal">(click to enlarge)</span>
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {item.images.map((img, i) => (
+              <div key={i} className="relative group">
+                <img
+                  src={img.src} alt={`ref ${i+1}`} onClick={() => onModal(img.src)}
+                  className="w-28 h-28 object-cover rounded-lg border-2 border-teal cursor-zoom-in shadow-md hover:border-orange hover:shadow-lg hover:scale-105 transition-all duration-150"
+                />
+                {/* Zoom overlay on hover */}
+                <div
+                  onClick={() => onModal(img.src)}
+                  className="absolute inset-0 bg-navy/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-zoom-in"
+                >
+                  <span className="text-white text-xl">🔍</span>
+                </div>
+                {/* Delete button */}
+                <button
+                  onClick={() => onDelImg(item.id, i)}
+                  className="absolute -top-2 -right-2 bg-red text-white rounded-full w-5 h-5 text-[10px] font-bold cursor-pointer border-2 border-white flex items-center justify-center shadow-md z-10"
+                >✕</button>
+                {/* Image number badge */}
+                <div className="absolute bottom-1 left-1 bg-navy/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                  {i + 1}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
