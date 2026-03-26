@@ -14,7 +14,7 @@ import { INR }        from './data/defaults'
 // ── Share Modal ───────────────────────────────────────────
 function ShareModal({ onClose }) {
   const { co, cl, items, charges, gst, gstType, totals, note } = useQuote()
-  const { subtotal, totChg, cgst, sgst, igst, grand } = totals
+  const { subtotal, cgst, sgst, igst, grand } = totals
   const [copied, setCopied] = useState(false)
   const isIntra = gstType === 'intra'
 
@@ -101,8 +101,18 @@ function SavedModal({ onClose }) {
 // ── Lightbox ──────────────────────────────────────────────
 function Lightbox({ src, onClose }) {
   return (
-    <div onClick={onClose} className="fixed inset-0 bg-black/80 z-[400] flex items-center justify-center cursor-zoom-out">
-      <img src={src} className="max-w-[90vw] max-h-[90vh] rounded-lg border-2 border-orange" alt="enlarged" />
+    <div onClick={onClose} className="fixed inset-0 bg-black/90 z-[400] flex flex-col items-center justify-center cursor-zoom-out p-4">
+      <img src={src} className="max-w-[92vw] max-h-[82vh] rounded-xl border-2 border-orange shadow-2xl object-contain" alt="enlarged" />
+      <div className="mt-3 flex items-center gap-3">
+        <span className="text-white/60 text-xs">Click anywhere to close</span>
+        <a
+          href={src} download="reference-image.jpg"
+          onClick={e => e.stopPropagation()}
+          className="bg-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg no-underline hover:opacity-90"
+        >
+          ⬇ Download
+        </a>
+      </div>
     </div>
   )
 }
