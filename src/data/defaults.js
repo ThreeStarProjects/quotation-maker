@@ -19,26 +19,14 @@ export const autoQN = () => {
 export const INR = (n) =>
   "Rs. " + new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2 }).format(Number(n) || 0)
 
-/**
- * calcTotals — returns full GST breakdown
- * gstType: 'intra' → CGST 9% + SGST 9%
- *          'inter' → IGST 18%
- *          false / null → no GST
- */
 export const calcTotals = (items, charges, gst, gstType = 'intra') => {
   const subtotal = items.reduce((a, i) => a + i.qty * i.rate, 0)
   const totChg   = charges.reduce((a, c) => a + Number(c.amount || 0), 0)
   const taxable  = subtotal + totChg
-
   let cgst = 0, sgst = 0, igst = 0
   if (gst) {
-    if (gstType === 'inter') {
-      igst = taxable * 0.18
-    } else {
-      // intra-state (default)
-      cgst = taxable * 0.09
-      sgst = taxable * 0.09
-    }
+    if (gstType === 'inter') { igst = taxable * 0.18 }
+    else { cgst = taxable * 0.09; sgst = taxable * 0.09 }
   }
   const gstAmt = cgst + sgst + igst
   return { subtotal, totChg, taxable, cgst, sgst, igst, gstAmt, grand: taxable + gstAmt }
@@ -58,7 +46,7 @@ export const DEFAULT_COMPANY = {
   website: "www.3starprojects.com",
   email:   "gsp@3starprojects.com | info@3starprojects.com",
   phone:   "7303111333 / 7498111222",
-  gstin:   "27AALCT9509K1ZN",   // Maharashtra GSTIN (27) — update with real number
+  gstin:   "27AABCT1234A1Z5",
   state:   "Maharashtra",
 }
 
@@ -78,6 +66,9 @@ export const DEFAULT_CLIENT = () => ({
 export const DEFAULT_CHARGES = () => ([
   { id: 1, label: "Transportation & Installation", amount: 0 },
 ])
+
+export const DEFAULT_ANNEX_IMG_SIZE = 150   // pt — image size in annex
+export const DEFAULT_ANNEX_IMG_COLS = 3     // images per row in annex
 
 export const DEFAULT_TERMS = `1. GST @ 18% will be applicable (CGST 9% + SGST 9% for intra-state / IGST 18% for inter-state supply).
 2. Price quoted are subject to the specifications mentioned above.
