@@ -119,7 +119,7 @@ function Lightbox({ src, onClose }) {
 
 // ── Inner App ─────────────────────────────────────────────
 function InnerApp() {
-  const { co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize, saveQuote } = useQuote()
+  const { co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize, annexImgSize, annexImgCols, saveQuote } = useQuote()
   const [tab,        setTab]        = useState('editor')
   const [modalImg,   setModalImg]   = useState(null)
   const [showShare,  setShowShare]  = useState(false)
@@ -130,7 +130,7 @@ function InnerApp() {
   const downloadPDF = useCallback(async () => {
     setPdfLoading(true)
     try {
-      const doc  = <QuotePDF co={co} cl={cl} items={items} charges={charges} gst={gst} gstType={gstType} totals={totals} note={note} terms={terms} bank={bank} logo={logo} logoSize={logoSize} />
+      const doc  = <QuotePDF co={co} cl={cl} items={items} charges={charges} gst={gst} gstType={gstType} totals={totals} note={note} terms={terms} bank={bank} logo={logo} logoSize={logoSize} annexImgSize={annexImgSize} annexImgCols={annexImgCols} />
       const blob = await pdf(doc).toBlob()
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
@@ -144,7 +144,7 @@ function InnerApp() {
     } finally {
       setPdfLoading(false)
     }
-  }, [co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize])
+  }, [co, cl, items, charges, gst, gstType, totals, note, terms, bank, logo, logoSize, annexImgSize, annexImgCols])
 
   const handleSave = () => {
     saveQuote()
