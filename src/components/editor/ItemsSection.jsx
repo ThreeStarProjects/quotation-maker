@@ -4,7 +4,7 @@ import { SectionHdr, Btn, Modal, Card } from '../ui'
 import { PRODUCTS } from '../../data/products'
 import { INR } from '../../data/defaults'
 
-const ItemRow = memo(({ item, idx, onUpd, onDel, onDup, onImg, onDelImg, onModal }) => {
+const ItemRow = memo(({ item, idx, onUpd, onDel, onDup, onImg, onDelImg, onModal, onUpdCaption, onMoveImg }) => {
   const fileRef = useRef(null)
 
   return (
@@ -61,6 +61,8 @@ const ItemRow = memo(({ item, idx, onUpd, onDel, onDup, onImg, onDelImg, onModal
           e.target.value = ""
         }}
       />
+
+      {/* Image grid */}
       {item.images.length > 0 && (
         <div className="mt-3">
           <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">
@@ -68,27 +70,53 @@ const ItemRow = memo(({ item, idx, onUpd, onDel, onDup, onImg, onDelImg, onModal
           </p>
           <div className="flex flex-wrap gap-3">
             {item.images.map((img, i) => (
-              <div key={i} className="relative group">
-                <img
-                  src={img.src} alt={`ref ${i+1}`} onClick={() => onModal(img.src)}
-                  className="w-28 h-28 object-cover rounded-lg border-2 border-teal cursor-zoom-in shadow-md hover:border-orange hover:shadow-lg hover:scale-105 transition-all duration-150"
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                {/* Image + hover overlay */}
+                <div className="relative group">
+                  <img
+                    src={img.src} alt={`ref ${i + 1}`} onClick={() => onModal(img.src)}
+                    className="w-28 h-28 object-cover rounded-lg border-2 border-teal cursor-zoom-in shadow-md hover:border-orange hover:scale-105 transition-all duration-150"
+                  />
+                  <div
+                    onClick={() => onModal(img.src)}
+                    className="absolute inset-0 bg-navy/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-zoom-in"
+                  >
+                    <span className="text-white text-xl">🔍</span>
+                  </div>
+                  {/* Delete */}
+                  <button
+                    onClick={() => onDelImg(item.id, i)}
+                    className="absolute -top-2 -right-2 bg-red text-white rounded-full w-5 h-5 text-[10px] font-bold cursor-pointer border-2 border-white flex items-center justify-center shadow-md z-10"
+                  >✕</button>
+                  {/* Image number badge */}
+                  <div className="absolute bottom-1 left-1 bg-navy/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                    {i + 1}
+                  </div>
+                </div>
+
+                {/* Reorder arrows */}
+                <div className="flex gap-1">
+                  <button
+                    disabled={i === 0}
+                    onClick={() => onMoveImg(item.id, i, i - 1)}
+                    className="w-6 h-6 rounded bg-navy/10 text-navy text-xs font-bold border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-navy hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+                    title="Move left"
+                  >◀</button>
+                  <button
+                    disabled={i === item.images.length - 1}
+                    onClick={() => onMoveImg(item.id, i, i + 1)}
+                    className="w-6 h-6 rounded bg-navy/10 text-navy text-xs font-bold border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-navy hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+                    title="Move right"
+                  >▶</button>
+                </div>
+
+                {/* Caption input */}
+                <input
+                  value={img.caption || ''}
+                  onChange={e => onUpdCaption(item.id, i, e.target.value)}
+                  placeholder={`Caption ${i + 1}`}
+                  className="w-28 px-2 py-1 border border-border rounded text-[10px] bg-white outline-none focus:border-teal text-center"
                 />
-                {/* Zoom overlay on hover */}
-                <div
-                  onClick={() => onModal(img.src)}
-                  className="absolute inset-0 bg-navy/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-zoom-in"
-                >
-                  <span className="text-white text-xl">🔍</span>
-                </div>
-                {/* Delete button */}
-                <button
-                  onClick={() => onDelImg(item.id, i)}
-                  className="absolute -top-2 -right-2 bg-red text-white rounded-full w-5 h-5 text-[10px] font-bold cursor-pointer border-2 border-white flex items-center justify-center shadow-md z-10"
-                >✕</button>
-                {/* Image number badge */}
-                <div className="absolute bottom-1 left-1 bg-navy/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                  {i + 1}
-                </div>
               </div>
             ))}
           </div>
@@ -136,7 +164,7 @@ function ProductPicker({ onClose, onAdd }) {
 }
 
 export default function ItemsSection({ onModalImg }) {
-  const { items, addItem, updItem, delItem, dupRow, addImg, delImg } = useQuote()
+  const { items, addItem, updItem, delItem, dupRow, addImg, delImg, updImgCaption, moveImg } = useQuote()
   const [showPicker, setShowPicker] = useState(false)
 
   return (
@@ -146,8 +174,9 @@ export default function ItemsSection({ onModalImg }) {
         {items.map((item, idx) => (
           <ItemRow
             key={item.id} item={item} idx={idx}
-            onUpd={updItem} onDel={delItem} onDup={dupRow}
-            onImg={addImg}  onDelImg={delImg} onModal={onModalImg}
+            onUpd={updItem}       onDel={delItem}       onDup={dupRow}
+            onImg={addImg}        onDelImg={delImg}      onModal={onModalImg}
+            onUpdCaption={updImgCaption}                 onMoveImg={moveImg}
           />
         ))}
         <Btn variant="orange" className="w-full py-2.5 text-sm" onClick={() => setShowPicker(true)}>
